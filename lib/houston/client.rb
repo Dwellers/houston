@@ -37,7 +37,7 @@ module Houston
 
       notifications.flatten!
       error = nil
-
+      puts "num notes: #{notifications.length}"
       Connection.open(@gateway_uri, @certificate, @passphrase) do |connection|
         ssl = connection.ssl
 
@@ -51,11 +51,15 @@ module Houston
           connection.write(notification.message)
           notification.mark_as_sent!
 
+          puts "sending token: #{notification.token}"
+
           break if notifications.count == 1 || notification == notifications.last
 
           read_socket, write_socket = IO.select([ssl], [ssl], [ssl], nil)
           if (read_socket && read_socket[0])
             error = connection.read(6)
+            command, status, index = error.unpack("ccN")
+            puts "async======#{command} #{status} #{index}======"
             break
           end
         end
@@ -72,6 +76,7 @@ module Houston
 
       if error
         command, status, index = error.unpack("ccN")
+        puts "sync====#{command} #{status} #{index}======"
         # status == 10 means shutdown, and the given id is the last one successfully sent
         index += 1 if status == 10
         notifications.slice!(0..index)
@@ -84,6 +89,7 @@ module Houston
       devices = []
 
       Connection.open(@feedback_uri, @certificate, @passphrase) do |connection|
+        puts "feed back connected #{@feedback_uri}"
         while line = connection.read(38)
           feedback = line.unpack('N1n1H140')
           token = feedback[2].scan(/.{0,8}/).join(' ').strip
