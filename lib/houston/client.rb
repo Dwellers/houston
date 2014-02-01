@@ -67,6 +67,7 @@ module Houston
         return if notifications.count == 1
 
         unless error
+          puts "blocking IO.select with timeout of: #{timeout}"
           read_socket, write_socket = IO.select([ssl], nil, [ssl], timeout)
           if (read_socket && read_socket[0])
             error = connection.read(6)
