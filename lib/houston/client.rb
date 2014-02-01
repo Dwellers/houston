@@ -37,7 +37,7 @@ module Houston
 
       notifications.flatten!
       error = nil
-      puts "num notes: #{notifications.length}"
+      puts "num notifications: #{notifications.length}"
       Connection.open(@gateway_uri, @certificate, @passphrase) do |connection|
         ssl = connection.ssl
 
